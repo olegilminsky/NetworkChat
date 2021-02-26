@@ -5,34 +5,30 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
-    private static final int PORT = 9090;
-    private static ServerSocket server;
-    private static Socket socket;
-    private static DataInputStream in;
-    private static DataOutputStream out;
+    private final int PORT = 9090;
+    private ServerSocket server;
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
-    public static void main(String[] args) {
+    private List<ClientHandler> clients;
+
+    public Server() {
+        clients = new CopyOnWriteArrayList<>();
+
         try {
             server = new ServerSocket(PORT);
             System.out.println("Server started");
-            socket = server.accept();
-            System.out.println("Client connected");
-
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
 
             while (true) {
-                String str = in.readUTF();
-
-                if (str.equals("/end")) {
-                    System.out.println("Client disconnected");
-                    break;
-                }
-
-                System.out.println("Client: " + str);
-                out.writeUTF("ECHO: " + str);
+                socket = server.accept();
+                System.out.println("Client connected");
+                System.out.println("Client: " + socket.getRemoteSocketAddress());
+                clients.add(new ClientHandler(this, socket));
             }
 
         } catch (IOException e) {
@@ -48,6 +44,12 @@ public class Server {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void broadcastMessage(String message) {
+        for (ClientHandler client : clients) {
+            client.sendMessage(message);
         }
     }
 }
