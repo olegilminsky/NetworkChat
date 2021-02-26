@@ -1,0 +1,18 @@
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="client.Controller" alignment="center">
+<stylesheets>
+    <URL value="@/css/style.css"/>
+</stylesheets>
+
+    <TextArea fx:id="history" VBox.vgrow="ALWAYS" editable="false" focusTraversable="false"/>
+    <HBox>
+        <TextField fx:id="message" HBox.hgrow="ALWAYS" onKeyPressed="#sendMessage" focusTraversable="false"
+                   promptText="Enter your message"/>
+        <Button fx:id="send" AnchorPane.rightAnchor="0" text="Send" onAction="#clickButtonSend"/>
+    </HBox>
+</VBox>
