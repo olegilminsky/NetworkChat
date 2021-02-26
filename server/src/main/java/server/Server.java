@@ -52,4 +52,14 @@ public class Server {
             client.sendMessage(message);
         }
     }
+
+    public void subscribe(ClientHandler clientHandler){
+        clients.add(clientHandler);
+    }
+
+    public void unsubscribe(ClientHandler clientHandler){
+        clients.remove(clientHandler);
+    }
+
+
 }
