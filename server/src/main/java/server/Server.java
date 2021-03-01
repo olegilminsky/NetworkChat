@@ -16,9 +16,11 @@ public class Server {
     private DataOutputStream out;
 
     private List<ClientHandler> clients;
+    private AuthService authService;
 
     public Server() {
         clients = new CopyOnWriteArrayList<>();
+        authService = new SimpleAuthService();
 
         try {
             server = new ServerSocket(PORT);
@@ -28,7 +30,7 @@ public class Server {
                 socket = server.accept();
                 System.out.println("Client connected");
                 System.out.println("Client: " + socket.getRemoteSocketAddress());
-                clients.add(new ClientHandler(this, socket));
+                new ClientHandler(this, socket);
             }
 
         } catch (IOException e) {
@@ -47,9 +49,36 @@ public class Server {
         }
     }
 
-    public void broadcastMessage(String message) {
+    public void broadcastMessage(ClientHandler sender, String msg) {
+        String message = String.format("[ %s ]: %s", sender.getNickname(), msg);
         for (ClientHandler client : clients) {
             client.sendMessage(message);
         }
+    }
+
+    public void privateMessage(ClientHandler sender, String receiver, String msg) {
+        String message = String.format("[ %s ] to [ %s ]: %s", sender.getNickname(), receiver, msg);
+        for (ClientHandler client : clients) {
+            if (client.getNickname().equals(receiver)) {
+                client.sendMessage(message);
+                if (!client.equals(sender)) {
+                    sender.sendMessage(message);
+                }
+                return;
+            }
+        }
+        sender.sendMessage("Пользователь " + receiver + " не найден.");
+    }
+
+    public void subscribe(ClientHandler clientHandler) {
+        clients.add(clientHandler);
+    }
+
+    public void unsubscribe(ClientHandler clientHandler) {
+        clients.remove(clientHandler);
+    }
+
+    public AuthService getAuthService() {
+        return authService;
     }
 }
