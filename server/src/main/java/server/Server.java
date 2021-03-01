@@ -56,11 +56,25 @@ public class Server {
         }
     }
 
-    public void subscribe(ClientHandler clientHandler){
+    public void privateMessage(ClientHandler sender, String receiver, String msg) {
+        String message = String.format("[ %s ] to [ %s ]: %s", sender.getNickname(), receiver, msg);
+        for (ClientHandler client : clients) {
+            if (client.getNickname().equals(receiver)) {
+                client.sendMessage(message);
+                if (!client.equals(sender)) {
+                    sender.sendMessage(message);
+                }
+                return;
+            }
+        }
+        sender.sendMessage("Пользователь " + receiver + " не найден.");
+    }
+
+    public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
     }
 
-    public void unsubscribe(ClientHandler clientHandler){
+    public void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
     }
 
