@@ -29,10 +29,13 @@ public class ClientHandler {
                     while (true) {
                         String str = in.readUTF();
 
+                        //если команда отключиться
                         if (str.equals(Command.END)) {
                             out.writeUTF(Command.END);
                             throw new RuntimeException("Клиент захотел отключиться.");
                         }
+
+                        //если команда аутентификация
                         if (str.startsWith(Command.AUTH)) {
                             String[] token = str.split("\\s");
                             if (token.length < 3) {
@@ -52,6 +55,20 @@ public class ClientHandler {
                                 }
                             } else {
                                 sendMessage("Неверный логин / пароль");
+                            }
+                        }
+
+                        //если команда регистрация
+                        if (str.startsWith(Command.REG)) {
+                            String[] token = str.split("\\s", 4);
+                            if (token.length < 4) {
+                                continue;
+                            }
+                            boolean regSuccess = server.getAuthService().registration(token[1], token[2], token[3]);
+                            if (regSuccess){
+                                sendMessage(Command.REG_OK);
+                            }else {
+                                sendMessage(Command.REG_NO);
                             }
                         }
                     }

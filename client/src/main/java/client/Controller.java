@@ -111,6 +111,14 @@ public class Controller implements Initializable {
                                 setAuthenticated(true);
                                 break;
                             }
+
+                            if (str.equals(Command.REG_OK)) {
+                                regController.setResultTryToReg(Command.REG_OK);
+                            }
+
+                            if (str.equals(Command.REG_NO)) {
+                                regController.setResultTryToReg(Command.REG_NO);
+                            }
                         } else {
                             history.appendText(str + "\n");
                         }
@@ -214,7 +222,7 @@ public class Controller implements Initializable {
     }
 
     public void showRegWindow(ActionEvent actionEvent) {
-        if (regStage == null){
+        if (regStage == null) {
             initRegWindow();
         }
         regStage.show();
@@ -233,6 +241,17 @@ public class Controller implements Initializable {
             regStage.setScene(new Scene(root, 350, 450));
             regStage.initStyle(StageStyle.UTILITY);
             regStage.initModality(Modality.APPLICATION_MODAL);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void registration(String login, String password, String nickname) {
+        if (socket == null || socket.isClosed()){
+            connect();
+        }
+        try {
+            out.writeUTF(String.format("%s %s %s %s", Command.REG, login, password, nickname));
         } catch (IOException e) {
             e.printStackTrace();
         }

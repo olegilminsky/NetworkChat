@@ -15,6 +15,6 @@
     <TextField fx:id="nicknameField" promptText="nickname"/>
     <TextArea fx:id="textArea" VBox.vgrow="ALWAYS"/>
 
-    <Button text="Reg" minWidth="100"/>
+    <Button text="Reg" minWidth="100" onAction="#tryToReg"/>
 
 </VBox>
