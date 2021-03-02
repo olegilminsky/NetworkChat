@@ -14,6 +14,7 @@ public class ClientHandler {
     private DataOutputStream out;
 
     private String nickname;
+    private String login;
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -38,12 +39,17 @@ public class ClientHandler {
                                 continue;
                             }
                             String newNick = server.getAuthService().getNicknameByLoginAndPassword(token[1], token[2]);
+                            login = token[1];
                             if (newNick != null) {
-                                nickname = newNick;
-                                sendMessage(Command.AUTH_OK + " " + nickname);
-                                server.subscribe(this);
-                                System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
-                                break;
+                                if (!server.isLoginAuthenticated(login)) {
+                                    nickname = newNick;
+                                    sendMessage(Command.AUTH_OK + " " + nickname);
+                                    server.subscribe(this);
+                                    System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
+                                    break;
+                                } else {
+                                    sendMessage("Данная учетная запись уже используется другим клиентом.");
+                                }
                             } else {
                                 sendMessage("Неверный логин / пароль");
                             }
@@ -99,5 +105,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public String getLogin() {
+        return login;
     }
 }
