@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private Server server;
@@ -25,6 +26,9 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+                    //установка сокет тайм-аут
+                    socket.setSoTimeout(120000);
+
                     //цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
@@ -49,6 +53,7 @@ public class ClientHandler {
                                     sendMessage(Command.AUTH_OK + " " + nickname);
                                     server.subscribe(this);
                                     System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
+                                    socket.setSoTimeout(0);
                                     break;
                                 } else {
                                     sendMessage("Данная учетная запись уже используется другим клиентом.");
@@ -65,9 +70,9 @@ public class ClientHandler {
                                 continue;
                             }
                             boolean regSuccess = server.getAuthService().registration(token[1], token[2], token[3]);
-                            if (regSuccess){
+                            if (regSuccess) {
                                 sendMessage(Command.REG_OK);
-                            }else {
+                            } else {
                                 sendMessage(Command.REG_NO);
                             }
                         }
@@ -93,6 +98,8 @@ public class ClientHandler {
                             server.broadcastMessage(this, str);
                         }
                     }
+                } catch (SocketTimeoutException e) {
+                    out.writeUTF(Command.END);
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
                 } catch (IOException e) {
