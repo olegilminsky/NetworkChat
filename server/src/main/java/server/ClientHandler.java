@@ -99,7 +99,11 @@ public class ClientHandler {
                         }
                     }
                 } catch (SocketTimeoutException e) {
-                    out.writeUTF(Command.END);
+                    try {
+                        out.writeUTF(Command.END);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
                 } catch (IOException e) {
