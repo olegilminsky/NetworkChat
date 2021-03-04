@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private Server server;
@@ -14,6 +15,7 @@ public class ClientHandler {
     private DataOutputStream out;
 
     private String nickname;
+    private String login;
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -24,28 +26,54 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+                    //установка сокет тайм-аут
+                    socket.setSoTimeout(120000);
+
                     //цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
 
+                        //если команда отключиться
                         if (str.equals(Command.END)) {
                             out.writeUTF(Command.END);
                             throw new RuntimeException("Клиент захотел отключиться.");
                         }
+
+                        //если команда аутентификация
                         if (str.startsWith(Command.AUTH)) {
                             String[] token = str.split("\\s");
                             if (token.length < 3) {
                                 continue;
                             }
                             String newNick = server.getAuthService().getNicknameByLoginAndPassword(token[1], token[2]);
+                            login = token[1];
                             if (newNick != null) {
-                                nickname = newNick;
-                                sendMessage(Command.AUTH_OK + " " + nickname);
-                                server.subscribe(this);
-                                System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
-                                break;
+                                if (!server.isLoginAuthenticated(login)) {
+                                    nickname = newNick;
+                                    sendMessage(Command.AUTH_OK + " " + nickname);
+                                    server.subscribe(this);
+                                    System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
+                                    socket.setSoTimeout(0);
+                                    break;
+                                } else {
+                                    sendMessage("Данная учетная запись уже используется другим клиентом.");
+                                }
                             } else {
                                 sendMessage("Неверный логин / пароль");
+                            }
+                        }
+
+                        //если команда регистрация
+                        if (str.startsWith(Command.REG)) {
+                            String[] token = str.split("\\s", 4);
+                            if (token.length < 4) {
+                                continue;
+                            }
+                            boolean regSuccess = server.getAuthService().registration(token[1], token[2], token[3]);
+                            if (regSuccess) {
+                                sendMessage(Command.REG_OK);
+                            } else {
+                                sendMessage(Command.REG_NO);
                             }
                         }
                     }
@@ -69,6 +97,12 @@ public class ClientHandler {
                         } else {
                             server.broadcastMessage(this, str);
                         }
+                    }
+                } catch (SocketTimeoutException e) {
+                    try {
+                        out.writeUTF(Command.END);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
                     }
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
@@ -99,5 +133,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public String getLogin() {
+        return login;
     }
 }

@@ -10,13 +10,17 @@
     <HBox fx:id="authPanel">
         <TextField fx:id="loginField" HBox.hgrow="ALWAYS" promptText="login"/>
         <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="password" onAction="#tryToAuth"/>
-        <Button text="Auth"  onAction="#tryToAuth" minWidth="100"/>
+        <Button text="Auth" onAction="#tryToAuth" minWidth="100"/>
+        <Button text="Reg" onAction="#showRegWindow" minWidth="100"/>
     </HBox>
 
-    <TextArea fx:id="history" VBox.vgrow="ALWAYS" editable="false" focusTraversable="false"/>
+    <HBox VBox.vgrow="ALWAYS">
+        <TextArea fx:id="history" HBox.hgrow="ALWAYS" editable="false" focusTraversable="false" wrapText="true"/>
+        <ListView fx:id="clientList" visible="false" managed="false" minWidth="100" onMouseReleased="#clientListMouseReleased"/>
+    </HBox>
 
     <HBox fx:id="messagePanel" visible="false" managed="false">
-        <TextField fx:id="message" HBox.hgrow="ALWAYS" onKeyPressed="#sendMessage" focusTraversable="false"
+        <TextField fx:id="textMessage" HBox.hgrow="ALWAYS" onKeyPressed="#sendMessage" focusTraversable="false"
                    promptText="Enter your message"/>
         <Button fx:id="send" text="Send" onAction="#clickButtonSend"/>
     </HBox>
