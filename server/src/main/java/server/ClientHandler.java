@@ -55,6 +55,9 @@ public class ClientHandler {
                                     server.subscribe(this);
                                     System.out.println("Client: " + socket.getRemoteSocketAddress() + " connected with nick: " + nickname);
                                     socket.setSoTimeout(0);
+                                    //============//
+                                    sendMessage(SQLHandler.getMessageForNickname(nickname));
+                                    //============//
                                     break;
                                 } else {
                                     sendMessage("Данная учетная запись уже используется другим клиентом.");
@@ -95,6 +98,28 @@ public class ClientHandler {
                                 }
                                 server.privateMessage(this, token[1], token[2]);
                             }
+
+                            //==============//
+                            if (str.startsWith("/chnick ")) {
+                                String[] token = str.split("\\s+", 2);
+                                if (token.length < 2) {
+                                    continue;
+                                }
+                                if (token[1].contains(" ")) {
+                                    sendMessage("Ник не может содержать пробелов!");
+                                    continue;
+                                }
+                                if (server.getAuthService().changeNickname(this.nickname, token[1])) {
+                                    sendMessage("/yournickis " + token[1]);
+                                    sendMessage("Ваш ник изменен на " + token[1]);
+                                    this.nickname = token[1];
+                                    server.broadcastClientlist();
+                                } else {
+                                    sendMessage("Не удалось изменить ник. Ник " + token[1] + " уже используется другим пользователем.");
+                                }
+                            }
+                            //==============//
+
                         } else {
                             server.broadcastMessage(this, str);
                         }

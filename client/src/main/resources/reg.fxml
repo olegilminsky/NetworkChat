@@ -1,9 +1,6 @@
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
-<?import javafx.scene.control.TextArea?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="client.RegController" alignment="center">
     <stylesheets>

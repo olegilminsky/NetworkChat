@@ -7,6 +7,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -20,9 +24,18 @@ public class Server {
     private List<ClientHandler> clients;
     private AuthService authService;
 
+    private Connection connection;
+    private Statement statement;
+
     public Server() {
         clients = new CopyOnWriteArrayList<>();
-        authService = new SimpleAuthService();
+//        authService = new SimpleAuthService();
+        //===========//
+        if (!SQLHandler.connect()) {
+            throw new RuntimeException("Не удалось подключиться к БД!");
+        }
+        authService = new DBAuthService();
+        //===========//
 
         try {
             server = new ServerSocket(PORT);
@@ -38,6 +51,7 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            SQLHandler.disconnect();
             try {
                 socket.close();
             } catch (IOException e) {
@@ -53,6 +67,10 @@ public class Server {
 
     public void broadcastMessage(ClientHandler sender, String msg) {
         String message = String.format("[ %s ]: %s", sender.getNickname(), msg);
+        //============//
+        SQLHandler.addMessage(sender.getNickname(), "null", msg, "once upon a time");
+        //============//
+
         for (ClientHandler client : clients) {
             client.sendMessage(message);
         }
@@ -63,6 +81,10 @@ public class Server {
         for (ClientHandler client : clients) {
             if (client.getNickname().equals(receiver)) {
                 client.sendMessage(message);
+                //============//
+                SQLHandler.addMessage(sender.getNickname(), receiver, msg, "once upon a time");
+                //============//
+
                 if (!client.equals(sender)) {
                     sender.sendMessage(message);
                 }
@@ -105,6 +127,25 @@ public class Server {
 
         for (ClientHandler client : clients) {
             client.sendMessage(message);
+        }
+    }
+
+    private void connect() throws ClassNotFoundException, SQLException {
+        Class.forName("org.sqlite.JDBC");
+        connection = DriverManager.getConnection("jdbc:sqlite:db_NetworkChat");
+        statement = connection.createStatement();
+    }
+
+    private void disconnect() {
+        try {
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

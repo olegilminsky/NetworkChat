@@ -247,7 +247,7 @@ public class Controller implements Initializable {
     }
 
     public void registration(String login, String password, String nickname) {
-        if (socket == null || socket.isClosed()){
+        if (socket == null || socket.isClosed()) {
             connect();
         }
         try {
